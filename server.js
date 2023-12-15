@@ -21,9 +21,10 @@ db.once("open", () => {
 
 const app = express();
 
-app.use(morgan("dev"));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(morgan("dev"));         
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb' , extended: true}));
+app.use("/uploads", express.static('uploads'))
 
 app.use(cors({ origin: ["http://localhost:3001", "http://127.0.0.1:3001"] }));
 

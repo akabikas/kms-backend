@@ -14,9 +14,20 @@ const registerUser = (req, res, next) => {
       name: req.body.name,
       email: req.body.email,
       role: req.body.role,
+      biography: req.body.biography,
       organisation: req.body.organisation,
       password: hasedPassword,
     });
+
+    if(req.file){
+      user.profilePicture = req.file.path
+    } else{
+      console.log(req.body)
+      res.status(400).json({
+        message: "An error occoured!",
+      });
+      return;
+    }
 
     user
       .save()
@@ -65,6 +76,27 @@ const loginUser = (req,res,next) => {
   })
 }
 
+const getAllUsers = (req, res, next) => {
+  if (req.body && req.body.user.role === 'admin') {
+    User.find()
+      .then(users => {
+        res.status(200).json({
+          users: users
+        });
+      })
+      .catch(error => {
+        res.status(500).json({
+          error: error.message
+        });
+      });
+  } else {
+    res.status(403).json({
+      message: "Authorization error",
+    });
+  }
+};
+
+
 const logoutUser = (req, res, next) => {
   res.cookie('token', '', { expires: new Date(0) });
   res.status(201).json({
@@ -76,4 +108,5 @@ module.exports = {
   registerUser,
   loginUser,
   logoutUser,
+  getAllUsers,
 };

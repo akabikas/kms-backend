@@ -16,6 +16,12 @@ const userSchema = new Schema({
     },
     password: {
         type: String
+    },
+    biography: {
+        type: String
+    },
+    profilePicture: {
+        type: String
     }
 }, {timestamps: true})
 

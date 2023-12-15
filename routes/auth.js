@@ -1,11 +1,13 @@
 const express = require('express')
 const router = express.Router()
 
-const authController = require('../controllers/auth.controller')
+const authController = require('../controllers/user.controller')
 const authenticateUser = require('../middleware/authenticate')
+const upload = require("../middleware/upload")
 
-router.post('/register',  authController.registerUser)
+router.post('/register', authenticateUser, upload.single('profilePicture'), authController.registerUser)
 router.post('/login', authController.loginUser)
 router.post('/logout', authenticateUser, authController.logoutUser)
+router.post('/users', authenticateUser, authController.getAllUsers);
 
 module.exports = router
