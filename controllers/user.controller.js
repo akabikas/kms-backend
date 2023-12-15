@@ -20,9 +20,9 @@ const registerUser = (req, res, next) => {
       password: hasedPassword,
     });
 
-    if(req.file){
-      user.profilePicture = req.file.path 
-    } else{
+    if (req.file) {
+      user.profilePicture = req.file.path;
+    } else {
       res.status(400).json({
         message: "An error occoured!",
       });
@@ -32,8 +32,8 @@ const registerUser = (req, res, next) => {
     user
       .save()
       .then((user) => {
-        if(req.body.sendEmail === "on"){
-          sendEmail(req.body.email, req.body.password)
+        if (req.body.sendEmail === "on") {
+          sendEmail(req.body.email, req.body.password);
         }
         res.json({
           message: "User added successfully!",
@@ -47,49 +47,54 @@ const registerUser = (req, res, next) => {
   });
 };
 
-const loginUser = (req,res,next) => {
-  var email = req.body.email
-  var password = req.body.password
+const loginUser = (req, res, next) => {
+  var email = req.body.email;
+  var password = req.body.password;
 
-  User.findOne({email: email}).then(user => {
-    if(user){
-      bcrypt.compare(password, user.password, function(err, result) {
-        if(err){
+  User.findOne({ email: email }).then((user) => {
+    if (user) {
+      bcrypt.compare(password, user.password, function (err, result) {
+        if (err) {
           res.status(500).json({
-            error: err
-          })
-        } if(result){
-          let token = jwt.sign({name: user.name}, 'Azo5sa@(s7@3ajd^&9&32', {expiresIn: '1h'})
-          res.status(201).json({
-            message: 'Login Successful',
-            token,
-            user
-          })
-        } else{
-          res.status(400).json({
-            message: 'Invalid password'
-          })
+            error: err,
+          });
         }
-      })
-    }else{
+        if (result) {
+          let token = jwt.sign({ name: user.name }, "Azo5sa@(s7@3ajd^&9&32", {
+            expiresIn: "1h",
+          });
+          res.status(201).json({
+            message: "Login Successful",
+            token,
+            user,
+          });
+        } else {
+          res.status(400).json({
+            message: "Invalid password",
+          });
+        }
+      });
+    } else {
       res.status(404).json({
-        message: 'We could not find this account.'
-      })
+        message: "We could not find this account.",
+      });
     }
-  })
-}
+  });
+};
 
 const getAllUsers = (req, res, next) => {
-  if (req.body && req.body.user.role === 'admin') {
+  if (req.body && req.body.user.role === "admin") {
     User.find()
-      .then(users => {
+      .sort({ createdAt: -1 })
+      .exec()
+      .then((users) => {
         res.status(200).json({
-          users: users
+          users: users,
         });
       })
-      .catch(error => {
+      .catch((error) => {
         res.status(500).json({
-          error: error.message
+          error: error.message,
         });
       });
   } else {
@@ -99,9 +104,8 @@ const getAllUsers = (req, res, next) => {
   }
 };
 
-
 const logoutUser = (req, res, next) => {
-  res.cookie('token', '', { expires: new Date(0) });
+  res.cookie("token", "", { expires: new Date(0) });
   res.status(201).json({
     message: "Logout successful",
   });
@@ -109,14 +113,21 @@ const logoutUser = (req, res, next) => {
 
 const deleteUser = (req, res, next) => {
   User.findByIdAndDelete(req.body.userID)
-    .then(deletedUser => {
+    .then((deletedUser) => {
       if (!deletedUser) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
       }
-      res.status(200).json({ success: true, message: 'User deleted successfully' });
+      res
+        .status(200)
+        .json({ success: true, message: "User deleted successfully" });
     })
-    .catch(error => {
-      res.status(500).json({ success: false, error: error.message || 'Internal Server Error' });
+    .catch((error) => {
+      res.status(500).json({
+        success: false,
+        error: error.message || "Internal Server Error",
+      });
     });
 };
 
@@ -125,5 +136,5 @@ module.exports = {
   loginUser,
   logoutUser,
   getAllUsers,
-  deleteUser
+  deleteUser,
 };
