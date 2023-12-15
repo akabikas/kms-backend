@@ -9,5 +9,6 @@ router.post('/register', authenticateUser, upload.single('profilePicture'), auth
 router.post('/login', authController.loginUser)
 router.post('/logout', authenticateUser, authController.logoutUser)
 router.post('/users', authenticateUser, authController.getAllUsers);
+router.post('/delete-user', authenticateUser, authController.deleteUser);
 
 module.exports = router

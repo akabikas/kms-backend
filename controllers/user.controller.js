@@ -104,9 +104,23 @@ const logoutUser = (req, res, next) => {
   });
 };
 
+const deleteUser = (req, res, next) => {
+  User.findByIdAndDelete(req.body.userID)
+    .then(deletedUser => {
+      if (!deletedUser) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      res.status(200).json({ success: true, message: 'User deleted successfully' });
+    })
+    .catch(error => {
+      res.status(500).json({ success: false, error: error.message || 'Internal Server Error' });
+    });
+};
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   getAllUsers,
+  deleteUser
 };
