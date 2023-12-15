@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/user.model");
+const { sendEmail } = require("../services/email.service");
 
 const registerUser = (req, res, next) => {
   bcrypt.hash(req.body.password, 10, function (err, hasedPassword) {
@@ -20,9 +21,8 @@ const registerUser = (req, res, next) => {
     });
 
     if(req.file){
-      user.profilePicture = req.file.path
+      user.profilePicture = req.file.path 
     } else{
-      console.log(req.body)
       res.status(400).json({
         message: "An error occoured!",
       });
@@ -32,6 +32,9 @@ const registerUser = (req, res, next) => {
     user
       .save()
       .then((user) => {
+        if(req.body.sendEmail === "on"){
+          sendEmail(req.body.email, req.body.password)
+        }
         res.json({
           message: "User added successfully!",
         });
