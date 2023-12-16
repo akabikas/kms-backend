@@ -1,4 +1,7 @@
 const Project = require("../models/project.model");
+const User = require("../models/user.model");
+const { sendEmail } = require("../services/email.service");
+const notificationService = require("../services/notification.service");
 
 const getProjects = async (req, res, next) => {
   try {
@@ -11,24 +14,52 @@ const getProjects = async (req, res, next) => {
   }
 };
 
-const addProject = (req, res, next) => {
-  let project = new Project({
-    name: req.body.name,
-    description: req.body.description,
-    assignedTo: req.body.assignedTo,
-    status: req.body.status,
-  });
-
-  project
-    .save()
-    .then((savedProject) => {
-      res.status(201).json({ message: "Project added successfully" });
-    })
-    .catch((error) => {
-      res
-        .status(500)
-        .json({ message: "An error occurred!", error: error.message });
+const addProject = async (req, res, next) => {
+  try {
+    let project = new Project({
+      name: req.body.name,
+      description: req.body.description,
+      assignedTo: req.body.assignedTo,
+      status: req.body.status,
     });
+
+    const savedProject = await project.save();
+
+    const notificationData = {
+      title: "A new project has been assigned to you",
+      description: `Go to this project and access all the material: ${savedProject.name}`,
+      project: savedProject._id,
+      assignedTo: req.body.assignedTo,
+      status: "Unread",
+    };
+
+    const addNotification = await notificationService.createNotification(
+      notificationData
+    );
+
+    if (addNotification.success) {
+
+      const users = await User.find({ _id: { $in: req.body.assignedTo } });
+
+      const userList = users.map(user => `<li>${user.name} : ${user.email}</li>`).join('');
+
+      users.forEach(async (user) => {
+        const emailData = {
+          toEmail: user.email,
+          subject: "Someone assigned a project to you.",
+          text: "You have been assigned to this project. Go to H&K website and access the project details",
+          html: `<p>You have been assigned to ${project.name}. Go to <a href="http://localhost:3001">H&K website</a> and access the project details</p><p>Here is the list of members on this project: <ul>${userList}</ul></p>`,
+        };
+        await sendEmail(emailData);
+      });
+    }
+
+    res.status(201).json({ message: "Project added successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "An error occurred!", error: error.message });
+  }
 };
 
 const updateProject = (req, res, next) => {

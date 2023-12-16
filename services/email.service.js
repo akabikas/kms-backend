@@ -8,13 +8,13 @@ const transporter = nodemailer.createTransport({
   auth: { user: email, pass },
 });
 
-const sendEmail = async (emailofUser, passwordofUser) => {
+const sendEmail = async (emailData) => {
   await transporter.sendMail({
     from: email,
-    to: email,
-    subject: "H&K - Account created successfully",
-    text: "We've created your account please use these credentials to access your account:",
-    html: `<p>We've created your account please use these credentials to access your account:</p><br><p>${emailofUser} : ${passwordofUser}</p>`,
+    to: emailData.toEmail,
+    subject: emailData.subject,
+    text: emailData.text,
+    html: emailData.html,
   });
 };
 

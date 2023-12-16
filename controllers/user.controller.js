@@ -33,7 +33,13 @@ const registerUser = (req, res, next) => {
       .save()
       .then((user) => {
         if (req.body.sendEmail === "on") {
-          sendEmail(req.body.email, req.body.password);
+          const emailData = {
+            toEmail: req.body.email,
+            subject: "H&K - Account created successfully",
+            text: "We've created your account please use these credentials to access your account:",
+            html:  `<p>We've created your account please use these credentials to access your account at <a href='http://localhost:3001'>H&K - Knowledge management system</a>:</p><br><p>${req.body.email} : ${req.body.password}</p>`
+          }
+          sendEmail(emailData);
         }
         res.json({
           message: "User added successfully!",

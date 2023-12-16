@@ -1,13 +1,17 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const projectSchema = new Schema(
+const notificationSchema = new Schema(
   {
-    name: {
+    title: {
       type: String,
     },
     description: {
       type: String,
+    },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
     },
     assignedTo: [
       {
@@ -22,5 +26,5 @@ const projectSchema = new Schema(
   { timestamps: true }
 );
 
-const Project = mongoose.model("Project", projectSchema);
-module.exports = Project;
+const Notification = mongoose.model("Notification", notificationSchema);
+module.exports = Notification;
