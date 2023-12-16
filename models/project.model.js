@@ -9,6 +9,9 @@ const projectSchema = new Schema(
     description: {
       type: String,
     },
+    documents: {
+      type: String,
+    },
     assignedTo: [
       {
         type: mongoose.Schema.Types.ObjectId,

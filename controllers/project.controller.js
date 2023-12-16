@@ -16,12 +16,22 @@ const getProjects = async (req, res, next) => {
 
 const addProject = async (req, res, next) => {
   try {
+    
     let project = new Project({
       name: req.body.name,
       description: req.body.description,
       assignedTo: req.body.assignedTo,
       status: req.body.status,
     });
+
+    if(req.files){
+        let path = ''
+        req.files.forEach(function(files, index, arr){
+            path = path + files.path + ","
+        })
+        path = path.substring(0, path.lastIndexOf(","))
+        project.documents = path
+    }
 
     const savedProject = await project.save();
 
