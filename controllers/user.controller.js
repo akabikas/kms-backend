@@ -37,8 +37,8 @@ const registerUser = (req, res, next) => {
             toEmail: req.body.email,
             subject: "H&K - Account created successfully",
             text: "We've created your account please use these credentials to access your account:",
-            html:  `<p>We've created your account please use these credentials to access your account at <a href='http://localhost:3001'>H&K - Knowledge management system</a>:</p><br><p>${req.body.email} : ${req.body.password}</p>`
-          }
+            html: `<p>We've created your account please use these credentials to access your account at <a href='http://localhost:3001'>H&K - Knowledge management system</a>:</p><br><p>${req.body.email} : ${req.body.password}</p>`,
+          };
           sendEmail(emailData);
         }
         res.json({
@@ -51,6 +51,77 @@ const registerUser = (req, res, next) => {
         });
       });
   });
+};
+
+const editUserSinglePersonal = async (req, res, next) => {
+  try {
+    const userId = req.query.id;
+    const updatedUserInfo = {
+      name: req.body.name,
+      email: req.body.email,
+      biography: req.body.biography,
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updatedUserInfo, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("Updated user information:", updatedUser);
+    return res
+      .status(200)
+      .json({
+        message: "User information updated successfully",
+        user: updatedUser,
+      });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to update user information" });
+  }
+};
+
+const editUserSingleAvatar = async (req, res, next) => {
+  try {
+    const userId = req.query.id;
+
+    const userUpdatedAvatar = {};
+
+    if (req.file) {
+      userUpdatedAvatar.profilePicture = req.file.path;
+    } else {
+      res.status(400).json({
+        message: "An error occoured!",
+      });
+      return;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      userUpdatedAvatar,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("Updated user avatar:", updatedUser);
+    return res
+      .status(200)
+      .json({ message: "User avatar updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res.status(500).json({ message: "Failed to update user avatar" });
+  }
 };
 
 const loginUser = (req, res, next) => {
@@ -87,26 +158,24 @@ const loginUser = (req, res, next) => {
     }
   });
 };
-
-const getAllUsers = (req, res, next) => {
-  if (req.body && req.body.user.role === "admin") {
-    User.find()
-      .sort({ createdAt: -1 })
-      .exec()
-      .then((users) => {
-        res.status(200).json({
-          users: users,
-        });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          error: error.message,
-        });
-      });
-  } else {
-    res.status(403).json({
-      message: "Authorization error",
-    });
+const getAllUsers = async (req, res, next) => {
+  try {
+    if (req.query.id) {
+      const user = await User.findById(req.query.id).exec();
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      return res.status(200).json({ user });
+    } else {
+      if (req.body && req.body.user && req.body.user.role === "admin") {
+        const users = await User.find().sort({ createdAt: -1 }).exec();
+        return res.status(200).json({ users });
+      } else {
+        return res.status(403).json({ message: "Authorization error" });
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -143,4 +212,6 @@ module.exports = {
   logoutUser,
   getAllUsers,
   deleteUser,
+  editUserSinglePersonal,
+  editUserSingleAvatar,
 };

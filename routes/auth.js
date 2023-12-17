@@ -3,7 +3,10 @@ const router = express.Router();
 
 const authController = require("../controllers/user.controller");
 const authenticateUser = require("../middleware/authenticate");
-const { uploadSingleImage, uploadMultipleFiles } = require("../middleware/upload");
+const {
+  uploadSingleImage,
+  uploadMultipleFiles,
+} = require("../middleware/upload");
 const projectController = require("../controllers/project.controller");
 
 router.post(
@@ -16,9 +19,25 @@ router.post("/login", authController.loginUser);
 router.post("/logout", authenticateUser, authController.logoutUser);
 router.post("/users", authenticateUser, authController.getAllUsers);
 router.post("/delete-user", authenticateUser, authController.deleteUser);
+router.post(
+  "/edit-user-personal",
+  authenticateUser,
+  authController.editUserSinglePersonal
+);
+router.post(
+  "/edit-user-avatar",
+  authenticateUser,
+  uploadSingleImage.single("profilePicture"),
+  authController.editUserSingleAvatar
+);
 
-router.get("/projects", authenticateUser, projectController.getProjects);
-router.post("/add-project", authenticateUser, uploadMultipleFiles.array('documents'), projectController.addProject);
+router.post("/projects", authenticateUser, projectController.getProjects);
+router.post(
+  "/add-project",
+  authenticateUser,
+  uploadMultipleFiles.array("documents"),
+  projectController.addProject
+);
 router.put(
   "/update-project",
   authenticateUser,

@@ -4,19 +4,46 @@ const { sendEmail } = require("../services/email.service");
 const notificationService = require("../services/notification.service");
 
 const getProjects = async (req, res, next) => {
+  const { role, _id } = req.body.user;
+
   try {
-    const projects = await Project.find({}).populate("assignedTo").exec();
-    res.status(200).json({ projects });
+    if (req.query && req.query.id) {
+      const projectId = req.query.id;
+      const project = await Project.findById(projectId)
+        .populate('assignedTo')
+        .exec();
+
+      if (!project) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
+
+      if (role !== 'admin' && !project.assignedTo.some(user => user._id.equals(_id))) {
+        return res.status(403).json({ message: 'Authorization error' });
+      }
+
+      return res.status(200).json({ project });
+    } else {
+      let projectsQuery = {};
+
+      if (role !== 'admin') {
+        projectsQuery = { assignedTo: _id };
+      }
+
+      const projects = await Project.find(projectsQuery)
+        .sort({ createdAt: -1 })
+        .populate('assignedTo')
+        .exec();
+
+      res.status(200).json({ projects });
+    }
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "An error occurred!", error: error.message });
+    res.status(500).json({ message: 'An error occurred!', error: error.message });
   }
 };
 
+
 const addProject = async (req, res, next) => {
   try {
-    
     let project = new Project({
       name: req.body.name,
       description: req.body.description,
@@ -24,13 +51,13 @@ const addProject = async (req, res, next) => {
       status: req.body.status,
     });
 
-    if(req.files){
-        let path = ''
-        req.files.forEach(function(files, index, arr){
-            path = path + files.path + ","
-        })
-        path = path.substring(0, path.lastIndexOf(","))
-        project.documents = path
+    if (req.files) {
+      let path = "";
+      req.files.forEach(function (files, index, arr) {
+        path = path + files.path + ",";
+      });
+      path = path.substring(0, path.lastIndexOf(","));
+      project.documents = path;
     }
 
     const savedProject = await project.save();
@@ -48,10 +75,11 @@ const addProject = async (req, res, next) => {
     );
 
     if (addNotification.success) {
-
       const users = await User.find({ _id: { $in: req.body.assignedTo } });
 
-      const userList = users.map(user => `<li>${user.name} : ${user.email}</li>`).join('');
+      const userList = users
+        .map((user) => `<li>${user.name} : ${user.email}</li>`)
+        .join("");
 
       users.forEach(async (user) => {
         const emailData = {
