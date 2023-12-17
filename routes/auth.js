@@ -8,6 +8,7 @@ const {
   uploadMultipleFiles,
 } = require("../middleware/upload");
 const projectController = require("../controllers/project.controller");
+const notificationController = require("../controllers/notification.controller");
 
 router.post(
   "/register",
@@ -54,5 +55,9 @@ router.delete(
   authenticateUser,
   projectController.deleteProject
 );
+
+router.post("/notifications", authenticateUser, notificationController.getNotifications);
+router.patch("/notifications", authenticateUser, notificationController.updateNotification);
+
 
 module.exports = router;
