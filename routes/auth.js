@@ -30,6 +30,12 @@ router.post(
   uploadSingleImage.single("profilePicture"),
   authController.editUserSingleAvatar
 );
+router.post(
+  "/edit-user-password",
+  authenticateUser,
+  authController.editUserSinglePassword
+);
+
 
 router.post("/projects", authenticateUser, projectController.getProjects);
 router.post(

@@ -71,18 +71,67 @@ const editUserSinglePersonal = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log("Updated user information:", updatedUser);
-    return res
-      .status(200)
-      .json({
-        message: "User information updated successfully",
-        user: updatedUser,
-      });
+    return res.status(200).json({
+      message: "User information updated successfully",
+      user: updatedUser,
+    });
   } catch (error) {
     console.error("Error updating user:", error);
     return res
       .status(500)
       .json({ message: "Failed to update user information" });
+  }
+};
+
+const editUserSinglePassword = (req, res, next) => {
+  try {
+    const userId = req.query.id;
+    User.findOne({ _id: userId }).then((user) => {
+      if (user) {
+        bcrypt.compare(req.body.oldPass, user.password, function (err, result) {
+          if (err) {
+            res.status(500).json({
+              error: err,
+            });
+          }
+          if (result) {
+            bcrypt.hash(
+              req.body.password,
+              10,
+              async function (err, hasedPassword) {
+                const updatedUserInfo = {
+                  password: hasedPassword,
+                };
+
+                const updatedUser = await User.findByIdAndUpdate(
+                  userId,
+                  updatedUserInfo,
+                  {
+                    new: true,
+                    runValidators: true,
+                  }
+                );
+
+                if (!updatedUser) {
+                  return res.status(404).json({ message: "User not found" });
+                }
+                return res.status(200).json({
+                  message: "Password updated successfully",
+                  user: updatedUser,
+                });
+              }
+            );
+          } else {
+            res.status(400).json({
+              message: "Your current password is invalid.",
+            });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res.status(500).json({ message: "Failed to update Password" });
   }
 };
 
@@ -214,4 +263,5 @@ module.exports = {
   deleteUser,
   editUserSinglePersonal,
   editUserSingleAvatar,
+  editUserSinglePassword,
 };
